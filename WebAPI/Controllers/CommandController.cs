@@ -21,6 +21,12 @@ namespace WebAPI.Controllers
 
         ICommandService CommandService = null;
 
+        //-----------------------------------------------------------------------------------------
+        /// <summary>
+        /// Injecting a new instance of the ICommandService class.
+        /// </summary>
+        /// <param name="commandService">The command service dependency.</param>
+        //-----------------------------------------------------------------------------------------
 
         public CommandController(ICommandService  commandService)
         {

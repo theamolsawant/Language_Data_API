@@ -62,11 +62,13 @@ namespace Services
         }
 
 
+        //-----------------------------------------------------------------------------------------
         /// <summary>
         /// Get all the commands.
         /// </summary>
         /// <returns>List of commands.</returns>
         /// <exception cref="Exception"></exception>
+        //-----------------------------------------------------------------------------------------
 
         public async Task<List<CommandDTO>> GetCommands()
         {

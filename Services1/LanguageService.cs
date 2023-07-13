@@ -20,6 +20,16 @@ namespace Services
             _mapper = mapper;
         }
 
+        //-----------------------------------------------------------------------------------------
+        /// <summary>
+        /// Retrieves the list of languages.
+        /// </summary>
+        /// <returns>The list of languages.</returns>
+        /// <exception cref="Exception">Thrown when an error occurs while retrieving the list 
+        /// of languages.
+        /// </exception>
+        //-----------------------------------------------------------------------------------------
+
         public async Task<List<LanguageDTO>> GetLanguage()
         {
             try
