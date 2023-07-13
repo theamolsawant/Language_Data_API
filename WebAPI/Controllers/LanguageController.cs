@@ -7,9 +7,10 @@ using System.Web.Http.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebAPI.Data;
-using WebAPI.Model;
-using WebAPI.Services;
+using Services;
+using Services.Model;
+
+
 
 namespace WebAPI.Controllers
 {
@@ -41,11 +42,11 @@ namespace WebAPI.Controllers
 
         // GET: api/Languages
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Model.Language>>> GetLanguage()
+        public async Task<ActionResult<IEnumerable<LanguageDTO>>> GetLanguage()
         {
             try
             {
-                List<Model.Language> languages = new List<Model.Language>();
+                List<LanguageDTO> languages = new List<LanguageDTO>();
                 languages = await LanguageService.GetLanguage();
                 if (languages.Count == 0)
                 {
@@ -72,11 +73,11 @@ namespace WebAPI.Controllers
 
         // GET: api/Languages/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Model.Language>> GetLanguageById(int id)
+        public async Task<ActionResult<LanguageDTO>> GetLanguageById(int id)
         {
             try
             {
-                Model.Language language = new Model.Language();
+                LanguageDTO language = new LanguageDTO();
                 language = await LanguageService.GetLanguageById(id);
 
                 if (language == null || language.LangaugeId == 0)
@@ -104,7 +105,7 @@ namespace WebAPI.Controllers
 
         // POST: api/Languages
         [HttpPost]
-        public async Task<ActionResult> CreateLanguage([FromBody] Model.Language language)
+        public async Task<ActionResult> CreateLanguage([FromBody] LanguageDTO language)
         {
             try
             {
@@ -136,7 +137,7 @@ namespace WebAPI.Controllers
         //-----------------------------------------------------------------------------------------
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<Model.Language>> UpdateLanguage([FromBody] Model.Language language, int id)
+        public async Task<ActionResult<LanguageDTO>> UpdateLanguage([FromBody] LanguageDTO language, int id)
         {
             try
             {
@@ -145,7 +146,7 @@ namespace WebAPI.Controllers
 
                 var languageToUpdate = await LanguageService.GetLanguageById(id);
 
-             
+
                 if (languageToUpdate == null || languageToUpdate.LangaugeId == 0)
                 {
                     return NotFound($"Language with Id = {id} not found");
@@ -164,34 +165,33 @@ namespace WebAPI.Controllers
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
-        /// 
+        /// Deletes a language record by its ID.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">The ID of the language record to delete.</param>
+        /// <returns>An action result indicating the success or failure of the deletion.
+        /// </returns>
         //-----------------------------------------------------------------------------------------
 
         // DELETE: api/Languages/5
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLanguage(int id)
         {
             try
             {
-                Model.Language language = await LanguageService.GetLanguageById(id);
+                LanguageDTO language = await LanguageService.GetLanguageById(id);
                 if (language == null || language.LangaugeId == 0)
                 {
                     return NotFound($"Language with Id = {id} not found");
                 }
 
-                await LanguageService.DeleteLanguage(language);
+                await LanguageService.DeleteLanguage(id);
 
 
                 return NoContent();
             }
             catch (Exception)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-      "Error deleting data");
+                return StatusCode(500, "An error occurred while updating the language record.");
             }
         }
 

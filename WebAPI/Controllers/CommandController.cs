@@ -8,9 +8,8 @@ using System.Windows.Input;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebAPI.Data;
-using WebAPI.Model;
-using WebAPI.Services;
+using Services;
+using Services.Model;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace WebAPI.Controllers
@@ -37,11 +36,11 @@ namespace WebAPI.Controllers
         //-----------------------------------------------------------------------------------------
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Model.Command>>> GetCommands()
+        public async Task<ActionResult<IEnumerable<CommandDTO>>> GetCommands()
         {
             try
             {
-                List<Model.Command> commands = new List<Model.Command>();
+                List<CommandDTO> commands = new List<CommandDTO>();
                 commands = await CommandService.GetCommands();
                 if (commands.Count == 0)
                 {
@@ -66,11 +65,11 @@ namespace WebAPI.Controllers
 
         // GET: api/Commands/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Model.Command>> GetCommandById(int id)
+        public async Task<ActionResult<CommandDTO>> GetCommandById(int id)
         {
             try
             {
-                Model.Command command = new Model.Command();
+                CommandDTO command = new CommandDTO();
                 command = await CommandService.GetCommandById(id);
              
                 if (command == null || command.CommandId == 0)
@@ -98,11 +97,11 @@ namespace WebAPI.Controllers
 
         // GET: api/Commands/ByLanguage/5
         [HttpGet("ByLanguage/{languageId}")]
-        public async Task<ActionResult<IEnumerable<Model.Command>>> GetCommandsByLanguageId(int languageId)
+        public async Task<ActionResult<IEnumerable<CommandDTO>>> GetCommandsByLanguageId(int languageId)
         {
             try
             {
-                List<Model.Command> commands = await CommandService.GetCommandsByLanguageId(languageId);
+                List<CommandDTO> commands = await CommandService.GetCommandsByLanguageId(languageId);
 
                 if (commands == null || commands.Count == 0)
                 {
@@ -130,11 +129,11 @@ namespace WebAPI.Controllers
 
         // GET: api/Commands/ByLanguageAndCommand/{languageId}/{commandId}
         [HttpGet("ByLanguageAndCommand/{languageId}/{commandId}")]
-        public async Task<ActionResult<IEnumerable<Model.Command>>> GetCommandsByLanguageIdAndCommandId(int languageId, int commandId)
+        public async Task<ActionResult<IEnumerable<CommandDTO>>> GetCommandsByLanguageIdAndCommandId(int languageId, int commandId)
         {
             try
             {
-                List<Model.Command> commands = await CommandService.GetCommandsByLanguageIdAndCommandId(languageId, commandId);
+                List< CommandDTO> commands = await CommandService.GetCommandsByLanguageIdAndCommandId(languageId, commandId);
 
                 if (commands == null || commands.Count == 0)
                 {
@@ -161,7 +160,7 @@ namespace WebAPI.Controllers
         //-----------------------------------------------------------------------------------------
 
         [HttpPost]
-        public async Task<ActionResult> CreateCommand([FromBody] Model.Command command)
+        public async Task<ActionResult> CreateCommand([FromBody]  CommandDTO command)
         {
             try
             {
@@ -190,7 +189,7 @@ namespace WebAPI.Controllers
         //-----------------------------------------------------------------------------------------
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<Model.Command>> UpdateCommand([FromBody] Model.Command command, int id)
+        public async Task<ActionResult< CommandDTO>> UpdateCommand([FromBody]  CommandDTO command, int id)
         {
             try
             {
@@ -226,7 +225,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                Model.Command command = await CommandService.GetCommandById(id);
+                 CommandDTO command = await CommandService.GetCommandById(id);
                 if (command == null || command.CommandId == 0)
                 {
                     return NotFound($"Command with Id = {id} not found");

@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace WebAPI.Model
+namespace Services.Model
 {
-    public class Command
+    public class CommandDTO
     {
         public int CommandId { get; set; }
 
@@ -11,6 +11,6 @@ namespace WebAPI.Model
 
         public string CommandDescription { get; set; }
 
-        public int LangaugeId { get; set; }
+        public int LanguageId { get; set; }
     }
 }

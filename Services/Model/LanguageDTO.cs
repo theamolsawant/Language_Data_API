@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace WebAPI.Model
 {
-    public class Language
+    public class LanguageDTO
     {
     
         public int LangaugeId { get; set; }

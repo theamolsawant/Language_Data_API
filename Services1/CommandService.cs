@@ -1,16 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using DataAccessLayer;
+using Microsoft.EntityFrameworkCore;
+using Services.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WebAPI.Data;
-using WebAPI.Model;
 
-namespace WebAPI.Services
+namespace Services
 {
     public class CommandService : ICommandService
     {
         private readonly WebAPIContext _context;
+        private readonly IMapper _mapper;
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
@@ -19,10 +21,11 @@ namespace WebAPI.Services
         /// <param name="webAPIContext">The WebAPIContext used for data access.</param>
         //-----------------------------------------------------------------------------------------
 
-        public CommandService(WebAPIContext webAPIContext)
+        public CommandService(WebAPIContext webAPIContext,IMapper mapper)
         {
             _context = webAPIContext;
-        } 
+            _mapper = mapper;
+        }
 
 
         //-----------------------------------------------------------------------------------------
@@ -33,24 +36,24 @@ namespace WebAPI.Services
         /// <returns>Task representing the asynchronous operation with the ID of the added command.</returns>
         //-----------------------------------------------------------------------------------------
 
-        public  Task<int> AddCommand(Model.Command command)
+        public Task<int> AddCommand(CommandDTO command)
         {
             try
             {
-                var languageExists =  _context.Languages.Any(l => l.LangaugeId == command.LangaugeId);
+                var languageExists = _context.Languages.Any(l => l.LangaugeId == command.LanguageId);
                 if (!languageExists)
                     throw new InvalidOperationException("The specified language ID does not exist.");
 
-                Data.Command commandDataModel = new Data.Command
+                Command commandDataModel = new Command
                 {
                     CommandText = command.CommandText,
                     CommandDescription = command.CommandDescription,
-                    LanguageId = command.LangaugeId
+                    LanguageId = command.LanguageId
                 };
 
                 _context.Commands.Add(commandDataModel);
 
-                return (Task.Run(() => _context.SaveChanges()));
+                return Task.Run(() => _context.SaveChanges());
             }
             catch (Exception)
             {
@@ -64,25 +67,13 @@ namespace WebAPI.Services
         /// </summary>
         /// <returns>List of commands.</returns>
         /// <exception cref="Exception"></exception>
-        
-        public Task<List<Model.Command>> GetCommands()
+
+        public async Task<List<CommandDTO>> GetCommands()
         {
             try
             {
-                List<Model.Command> allCommands = new List<Model.Command>();
-
-                allCommands = _context.Commands.Select(c => new WebAPI.Model.Command()
-                {
-                    LangaugeId = c.LanguageId,
-                    CommandText = c.CommandText,
-                    CommandDescription = c.CommandDescription,
-                    CommandId   =   c.CommandId
-
-                }).ToList();
-
-                return Task.Run(() => allCommands);
-
-
+                var commandsFromDB = await _context.Commands.ToListAsync();
+                return _mapper.Map<List<CommandDTO>>(commandsFromDB);
 
             }
             catch (Exception ex)
@@ -101,28 +92,14 @@ namespace WebAPI.Services
         /// <exception cref="Exception">Thrown when an error occurs during retrieval.</exception>
         //-----------------------------------------------------------------------------------------
 
-        public async Task<Model.Command> GetCommandById(int commandId)
+        public async Task<CommandDTO> GetCommandById(int commandId)
         {
             try
             {
-                Model.Command modelCommandData = new Model.Command();
+                var commandsFromDB = await _context.Commands.FindAsync(commandId);
 
-                var commandFromDB = await _context.Commands
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(e => e.CommandId == commandId);
+                return _mapper.Map<CommandDTO>(commandsFromDB);
 
-                if (commandFromDB != null)
-                {
-                    modelCommandData = new Model.Command
-                    {
-                        CommandId = commandFromDB.CommandId,
-                        CommandText = commandFromDB.CommandText,
-                        CommandDescription = commandFromDB.CommandDescription,
-                        LangaugeId = commandFromDB.LanguageId
-                    };
-                }
-
-                return modelCommandData;
             }
             catch (Exception ex)
             {
@@ -139,33 +116,24 @@ namespace WebAPI.Services
         /// <returns>Task representing the asynchronous operation with the updated command.</returns>
         //-----------------------------------------------------------------------------------------
 
-        public async Task<Model.Command> UpdateCommand(Model.Command command)
+        public async Task<CommandDTO> UpdateCommand(CommandDTO command)
         {
-            var result = await _context.Commands
-                .FirstOrDefaultAsync(e => e.CommandId == command.CommandId);
-
-            var languageExists = _context.Languages.Any(l => l.LangaugeId == command.LangaugeId);
+            var languageExists = _context.Languages.Any(l => l.LangaugeId == command.LanguageId);
             if (!languageExists)
                 throw new InvalidOperationException("The specified language ID does not exist.");
 
+            var result = await _context.Commands.FindAsync(command.CommandId);
+           
+
             if (result != null)
             {
-                result.CommandText= command.CommandText;
+                result.CommandText = command.CommandText;
                 result.CommandDescription = command.CommandDescription;
                 result.CommandId = command.CommandId;
-                result.LanguageId = command.LangaugeId;
+                result.LanguageId = command.LanguageId;
 
-                await _context.SaveChangesAsync();
-
-                Model.Command commandDataModel = new Model.Command
-                {
-                    CommandId = result.CommandId,
-                    CommandText = result.CommandText,
-                    CommandDescription = result.CommandDescription,
-                    LangaugeId = result.LanguageId
-                };
-
-                return commandDataModel;
+                var res = await _context.SaveChangesAsync();
+                return _mapper.Map<CommandDTO>(result);
             }
 
             return null;
@@ -180,26 +148,20 @@ namespace WebAPI.Services
         /// <returns>Task representing the asynchronous operation with the result of the deletion.</returns>
         //-----------------------------------------------------------------------------------------
 
-        public Task<int> DeleteCommand(Model.Command command)
+        public async Task<int> DeleteCommand(CommandDTO command)
         {
             try
             {
-                Data.Command commandDataModel = new Data.Command
-                {
-                    CommandId = command.CommandId,
-                    CommandDescription = command.CommandDescription,
-                    CommandText = command.CommandText,
-                    LanguageId = command.LangaugeId
-                };
-
+                var t = _mapper.Map<Command>(command);
                 _context.ChangeTracker.Clear();
-                _context.Commands.Remove(commandDataModel);
+                _context.Commands.Remove(t);
 
-                return (Task.Run(() => _context.SaveChanges()));
+                return await Task.Run(() => _context.SaveChanges());
             }
             catch (Exception)
             {
-                return Task.FromResult(0);
+                throw new Exception("Error retrieving commands by language ID and command ID");
+
             }
         }
 
@@ -211,22 +173,15 @@ namespace WebAPI.Services
         /// <returns>List of commands filtered by the language ID.</returns>
         //-----------------------------------------------------------------------------------------
 
-        public async Task<List<Model.Command>> GetCommandsByLanguageId(int languageId)
+        public Task<List<CommandDTO>> GetCommandsByLanguageId(int languageId)
         {
             try
             {
-                List<Model.Command> commands = await _context.Commands
+                List<Command> commandFromDB = _context.Commands
                     .Where(c => c.LanguageId == languageId)
-                    .Select(c => new Model.Command
-                    {
-                        CommandId = c.CommandId,
-                        CommandText = c.CommandText,
-                        CommandDescription = c.CommandDescription,
-                        LangaugeId = c.LanguageId
-                    })
-                    .ToListAsync();
+                    .ToList();
 
-                return commands;
+                return Task.FromResult(_mapper.Map<List<CommandDTO>>(commandFromDB));
             }
             catch (Exception ex)
             {
@@ -244,27 +199,19 @@ namespace WebAPI.Services
         /// <returns>List of commands filtered by the language ID and command ID.</returns>
         //-----------------------------------------------------------------------------------------
 
-        public async Task<List<Model.Command>> GetCommandsByLanguageIdAndCommandId(int languageId, int commandId)
+        public async Task<List<CommandDTO>> GetCommandsByLanguageIdAndCommandId(int languageId, int commandId)
         {
             try
             {
-                List<Model.Command> commands = await _context.Commands
+                List<Command> commands = await _context.Commands
                     .Where(c => c.LanguageId == languageId && c.CommandId == commandId)
-                    .Select(c => new Model.Command
-                    {
-                        CommandId = c.CommandId,
-                        CommandDescription = c.CommandDescription,
-                        CommandText = c.CommandText,
-                        LangaugeId = c.LanguageId
-                    })
                     .ToListAsync();
 
-                return commands;
+                return _mapper.Map<List<CommandDTO>>(commands); ;
             }
             catch (Exception ex)
             {
-                // Handle any specific exception or log the error
-                throw new Exception("Error retrieving commands by language ID and command ID", ex);
+                throw new Exception("Error retrieving commands by language ID and command ID");
             }
         }
 

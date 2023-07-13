@@ -17,8 +17,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using WebAPI.Data;
-using WebAPI.Services;
+using DataAccessLayer;
+using Services;
 
 namespace WebAPI
 {
@@ -39,7 +39,7 @@ namespace WebAPI
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SwaggerSetupExample", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swagger for Web APIs", Version = "v1" });
                 
             });
 
@@ -48,6 +48,8 @@ namespace WebAPI
 
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICommandService, CommandService>();
+
+            services.AddAutoMapper(typeof(Startup));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -60,7 +62,7 @@ namespace WebAPI
 
       
             app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SwaggerSetupExample v1"));
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger for Web APIs"));
 
             app.UseHttpsRedirection();
 

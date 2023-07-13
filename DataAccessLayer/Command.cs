@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebAPI.Data
+namespace DataAccessLayer
 {
-    [Table ("TblCommand")]
+    [Table("TblCommand")]
     public class Command
     {
         [Key]
