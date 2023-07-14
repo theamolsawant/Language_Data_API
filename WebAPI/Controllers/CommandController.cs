@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web.Http.Results;
-using System.Windows.Input;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Services;
 using Services.Model;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 
 namespace WebAPI.Controllers
@@ -18,18 +14,22 @@ namespace WebAPI.Controllers
     [ApiController]
     public class CommandController : Controller
     {
-        public ICommandService CommandService { get; }
+        private ICommandService _commandService { get; }
+
+        private readonly ILogger<CommandController> _logger;
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
-        /// Injecting a new instance of the ICommandService class.
+        /// Injecting a new instance of the ICommandService class and logger.
         /// </summary>
         /// <param name="commandService">The command service dependency.</param>
+        /// <param name="logger"></param>
         //-----------------------------------------------------------------------------------------
 
-        public CommandController(ICommandService  commandService)
+        public CommandController(ICommandService  commandService , ILogger<CommandController> logger)
         {
-            CommandService = commandService;
+            _commandService = commandService;
+            _logger = logger;
         }
 
         //-----------------------------------------------------------------------------------------
@@ -43,10 +43,11 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CommandDTO>>> GetCommands()
         {
+            _logger.LogInformation("Processing request to get commands.");
             try
             {
                 List<CommandDTO> commands = new List<CommandDTO>();
-                commands = await CommandService.GetCommands();
+                commands = await _commandService.GetCommands();
                 if (commands.Count == 0)
                 {
                     return NotFound($"Commands not found");
@@ -54,9 +55,10 @@ namespace WebAPI.Controllers
 
                 return Ok(commands);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database");
+                _logger.LogError($"An error occurred while retrieving commands.{ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error while retrieving commands.");
             }
         }
 
@@ -72,10 +74,11 @@ namespace WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<CommandDTO>> GetCommandById(int id)
         {
+            _logger.LogInformation("Processing request to get command by Id");
             try
             {
                 CommandDTO command = new CommandDTO();
-                command = await CommandService.GetCommandById(id);
+                command = await _commandService.GetCommandById(id);
              
                 if (command == null || command.CommandId == 0)
                 {
@@ -84,9 +87,10 @@ namespace WebAPI.Controllers
 
                 return Ok(command);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database");
+                _logger.LogError($"An error occurred while retrieving command by id.{ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving commands from the database");
             }
         }
 
@@ -104,9 +108,10 @@ namespace WebAPI.Controllers
         [HttpGet("ByLanguage/{languageId}")]
         public async Task<ActionResult<IEnumerable<CommandDTO>>> GetCommandsByLanguageId(int languageId)
         {
+            _logger.LogInformation("Processing request to get commands by language Id.");
             try
             {
-                List<CommandDTO> commands = await CommandService.GetCommandsByLanguageId(languageId);
+                List<CommandDTO> commands = await _commandService.GetCommandsByLanguageId(languageId);
 
                 if (commands == null || commands.Count == 0)
                 {
@@ -116,8 +121,9 @@ namespace WebAPI.Controllers
 
                 return Ok(commands);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while  retrieving commands by language Id.{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database");
             }
         }
@@ -136,9 +142,10 @@ namespace WebAPI.Controllers
         [HttpGet("ByLanguageAndCommand/{languageId}/{commandId}")]
         public async Task<ActionResult<IEnumerable<CommandDTO>>> GetCommandsByLanguageIdAndCommandId(int languageId, int commandId)
         {
+            _logger.LogInformation("Processing request to get commands by language id and command id.");
             try
             {
-                List< CommandDTO> commands = await CommandService.GetCommandsByLanguageIdAndCommandId(languageId, commandId);
+                List< CommandDTO> commands = await _commandService.GetCommandsByLanguageIdAndCommandId(languageId, commandId);
 
                 if (commands == null || commands.Count == 0)
                 {
@@ -147,8 +154,9 @@ namespace WebAPI.Controllers
 
                 return Ok(commands);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while retrieving commands by command Id and language Id{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database");
             }
         }
@@ -167,18 +175,20 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateCommand([FromBody]  CommandDTO command)
         {
+            _logger.LogInformation("Processing request to create new command.");
             try
             {
                 if (command == null)
                     return BadRequest();
 
-                var createdCommand = await CommandService.AddCommand(command);
+                var createdCommand = await _commandService.AddCommand(command);
 
                 return CreatedAtAction(nameof(GetCommandById),
                     new { id = command.CommandId }, createdCommand);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while creating new command.{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Error creating new command record");
             }
@@ -196,20 +206,22 @@ namespace WebAPI.Controllers
         [HttpPut("{id:int}")]
         public async Task<ActionResult< CommandDTO>> UpdateCommand([FromBody]  CommandDTO command, int id)
         {
+            _logger.LogInformation("Processing request to update existing command by command id.");
             try
             {
                 if (id != command.CommandId)
                     return BadRequest("Command ID mismatch");
 
-                var commandToUpdate = await CommandService.GetCommandById(id);
+                var commandToUpdate = await _commandService.GetCommandById(id);
 
                 if (commandToUpdate == null)
                     return NotFound($"Command with Id = {id} not found");
                 
-                return await CommandService.UpdateCommand(command);
+                return await _commandService.UpdateCommand(command);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while updating existing command.{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"Error in updating command: {ex.Message}" );
             }
@@ -228,20 +240,22 @@ namespace WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCommand(int id)
         {
+            _logger.LogInformation("Processing request to delete command by Id.");
             try
             {
-                 CommandDTO command = await CommandService.GetCommandById(id);
+                 CommandDTO command = await _commandService.GetCommandById(id);
                 if (command == null || command.CommandId == 0)
                 {
                     return NotFound($"Command with Id = {id} not found");
                 }
 
-                await CommandService.DeleteCommand(command);
+                await _commandService.DeleteCommand(command);
 
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while deleting existing command by it's Id.{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting data");
             }
         }

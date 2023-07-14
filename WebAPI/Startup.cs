@@ -1,24 +1,14 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using DataAccessLayer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using DataAccessLayer;
 using Services;
+
 
 namespace WebAPI
 {
@@ -53,6 +43,14 @@ namespace WebAPI
 
             //Automapper registration
             services.AddAutoMapper(typeof(Startup));
+
+            // Other service configurations
+
+    services.AddLogging(configure =>
+    {
+        configure.AddConsole(); // Add Console logger
+        // Add other log providers if needed
+    });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

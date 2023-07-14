@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web.Http.Results;
-
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Logging;
 using Services;
 using Services.Model;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 
 
@@ -20,19 +15,23 @@ namespace WebAPI.Controllers
     [ApiController]
     public class LanguageController : ControllerBase
     {
+        private readonly ILogger<LanguageController> _logger;
 
-        ILanguageService LanguageService = null;
+        private ILanguageService _languageService { get; }
+
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
-        /// Constructor injecting Service.
+        /// Constructor injecting Service and logger.
         /// </summary>
         /// <param name="languageService">Language service</param>
+        /// <param name="logger"></param>
         //-----------------------------------------------------------------------------------------
 
-        public LanguageController(ILanguageService languageService)
+        public LanguageController(ILanguageService languageService, ILogger<LanguageController>  logger)
         {
-            LanguageService = languageService;
+            _languageService = languageService;
+            _logger = logger;
         }
 
         //-----------------------------------------------------------------------------------------
@@ -46,10 +45,11 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LanguageDTO>>> GetLanguage()
         {
+            _logger.LogInformation("Processing request to get all languages.");
             try
             {
                 List<LanguageDTO> languages = new List<LanguageDTO>();
-                languages = await LanguageService.GetLanguage();
+                languages = await _languageService.GetLanguage();
                 if (languages.Count == 0)
                 {
                     return NoContent();
@@ -57,8 +57,9 @@ namespace WebAPI.Controllers
 
                 return Ok(languages);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while retrieving languages.{ex.Message}");
 
                 return StatusCode(StatusCodes.Status500InternalServerError,
      "Error retrieving data from the database");
@@ -77,10 +78,11 @@ namespace WebAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<LanguageDTO>> GetLanguageById(int id)
         {
+            _logger.LogInformation("Processing request to language  by id.");
             try
             {
                 LanguageDTO language = new LanguageDTO();
-                language = await LanguageService.GetLanguageById(id);
+                language = await _languageService.GetLanguageById(id);
 
                 if (language == null || language.LangaugeId == 0)
                 {
@@ -92,6 +94,7 @@ namespace WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while retrieving languages by Id.{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Error retrieving data from the database");
             };
@@ -110,19 +113,21 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateLanguage([FromBody] LanguageDTO language)
         {
+            _logger.LogInformation("Processing request to create new language.");
             try
             {
                 if (language == null)
                     return BadRequest();
 
-                var createdLanguage = await LanguageService.AddLanguage(language);
+                var createdLanguage = await _languageService.AddLanguage(language);
 
 
                 return CreatedAtAction(nameof(GetLanguage),
                     new { id = language.LangaugeId }, createdLanguage);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while creating new  language.{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Error creating new employee record");
             }
@@ -142,12 +147,13 @@ namespace WebAPI.Controllers
         [HttpPut("{id:int}")]
         public async Task<ActionResult<LanguageDTO>> UpdateLanguage([FromBody] LanguageDTO language, int id)
         {
+            _logger.LogInformation("Processing request to update language by id.");
             try
             {
                 if (id != language.LangaugeId)
                     return BadRequest("Language ID mismatch");
 
-                var languageToUpdate = await LanguageService.GetLanguageById(id);
+                var languageToUpdate = await _languageService.GetLanguageById(id);
 
 
                 if (languageToUpdate == null || languageToUpdate.LangaugeId == 0)
@@ -155,10 +161,11 @@ namespace WebAPI.Controllers
                     return NotFound($"Language with Id = {id} not found");
                 }
 
-                return await LanguageService.UpdateLanguage(language);
+                return await _languageService.UpdateLanguage(language);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while updating existing language.{ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"Error in updating language:{ex.Message}");
             }
@@ -178,26 +185,25 @@ namespace WebAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLanguage(int id)
         {
+            _logger.LogInformation("Processing request to delete language by id.");
             try
             {
-                LanguageDTO language = await LanguageService.GetLanguageById(id);
+                LanguageDTO language = await _languageService.GetLanguageById(id);
                 if (language == null || language.LangaugeId == 0)
                 {
                     return NotFound($"Language with Id = {id} not found");
                 }
 
-                await LanguageService.DeleteLanguage(id);
-
+                await _languageService.DeleteLanguage(id);
 
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError($"An error occurred while deleting language.{ex.Message}");
                 return StatusCode(500, "An error occurred while updating the language record.");
             }
         }
-
-
 
     }
 }

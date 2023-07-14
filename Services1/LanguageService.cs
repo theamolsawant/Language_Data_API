@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DataAccessLayer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Services.Model;
 using System;
 using System.Collections.Generic;
