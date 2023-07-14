@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Services;
 using Services.Model;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+
 
 namespace WebAPI.Controllers
 {
@@ -18,8 +18,7 @@ namespace WebAPI.Controllers
     [ApiController]
     public class CommandController : Controller
     {
-
-        ICommandService CommandService = null;
+        public ICommandService CommandService { get; }
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
@@ -206,13 +205,13 @@ namespace WebAPI.Controllers
 
                 if (commandToUpdate == null)
                     return NotFound($"Command with Id = {id} not found");
-
+                
                 return await CommandService.UpdateCommand(command);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error updating data");
+                    $"Error in updating command: {ex.Message}" );
             }
         }
 
@@ -246,8 +245,6 @@ namespace WebAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting data");
             }
         }
-
-
 
     }
 }

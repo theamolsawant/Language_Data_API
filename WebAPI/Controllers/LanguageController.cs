@@ -4,9 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http.Results;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 using Services;
 using Services.Model;
 
@@ -153,13 +155,12 @@ namespace WebAPI.Controllers
                     return NotFound($"Language with Id = {id} not found");
                 }
 
-
                 return await LanguageService.UpdateLanguage(language);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error updating data");
+                    $"Error in updating language:{ex.Message}");
             }
         }
 

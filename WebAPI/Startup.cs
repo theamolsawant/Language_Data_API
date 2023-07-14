@@ -43,12 +43,15 @@ namespace WebAPI
                 
             });
 
+            //SQL connection string "WebAPIDBConnection" is defined in appsettings file.
             services.AddDbContext<WebAPIContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("WebAPIDBConnection")));
 
+            //resolve dependency
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ICommandService, CommandService>();
 
+            //Automapper registration
             services.AddAutoMapper(typeof(Startup));
         }
 
@@ -74,8 +77,6 @@ namespace WebAPI
             {
                 endpoints.MapControllers();
             });
-
-
             
         }
     }

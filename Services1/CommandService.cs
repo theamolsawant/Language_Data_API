@@ -57,7 +57,7 @@ namespace Services
             }
             catch (Exception)
             {
-                return Task.FromResult(0);
+                throw new Exception("Error adding command.");
             }
         }
 
@@ -76,12 +76,10 @@ namespace Services
             {
                 var commandsFromDB = await _context.Commands.ToListAsync();
                 return _mapper.Map<List<CommandDTO>>(commandsFromDB);
-
             }
-            catch (Exception ex)
+            catch (Exception )
             {
-
-                throw new Exception(ex.Message);
+                throw new Exception("Error retrieving commands");
             }
         }
 
@@ -103,9 +101,9 @@ namespace Services
                 return _mapper.Map<CommandDTO>(commandsFromDB);
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception(ex.Message);
+                throw new Exception("Error retrieving command by ID ");
             }
         }
 
@@ -120,25 +118,32 @@ namespace Services
 
         public async Task<CommandDTO> UpdateCommand(CommandDTO command)
         {
-            var languageExists = _context.Languages.Any(l => l.LangaugeId == command.LanguageId);
-            if (!languageExists)
-                throw new InvalidOperationException("The specified language ID does not exist.");
-
-            var result = await _context.Commands.FindAsync(command.CommandId);
-           
-
-            if (result != null)
+            try
             {
-                result.CommandText = command.CommandText;
-                result.CommandDescription = command.CommandDescription;
-                result.CommandId = command.CommandId;
-                result.LanguageId = command.LanguageId;
+                bool languageExists = _context.Languages.Any(l => l.LangaugeId == command.LanguageId);
+                if (!languageExists)
+                    throw new InvalidOperationException("The specified language ID does not exists.");
 
-                var res = await _context.SaveChangesAsync();
-                return _mapper.Map<CommandDTO>(result);
+                var result = await _context.Commands.FindAsync(command.CommandId);
+
+
+                if (result != null)
+                {
+                    result.CommandText = command.CommandText;
+                    result.CommandDescription = command.CommandDescription;
+                    result.CommandId = command.CommandId;
+                    result.LanguageId = command.LanguageId;
+
+                    var res = await _context.SaveChangesAsync();
+                    return _mapper.Map<CommandDTO>(result);
+                }
+
+                return null;
             }
-
-            return null;
+            catch (Exception)
+            {
+                throw ;
+            }
         }
 
 
@@ -162,7 +167,7 @@ namespace Services
             }
             catch (Exception)
             {
-                throw new Exception("Error retrieving commands by language ID and command ID");
+                throw new Exception("Error deleting command command ID");
 
             }
         }
@@ -185,9 +190,9 @@ namespace Services
 
                 return Task.FromResult(_mapper.Map<List<CommandDTO>>(commandFromDB));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception("Error retrieving commands by language ID", ex);
+                throw new Exception("Error retrieving commands by language ID");
             }
         }
 
@@ -211,7 +216,7 @@ namespace Services
 
                 return _mapper.Map<List<CommandDTO>>(commands); ;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw new Exception("Error retrieving commands by language ID and command ID");
             }

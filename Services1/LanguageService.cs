@@ -120,8 +120,6 @@ namespace Services
                 _context.Languages.Remove(languagesFromDB);
 
                 return await Task.Run(() => _context.SaveChanges());
-
-
             }
             catch (Exception)
             {
@@ -142,8 +140,6 @@ namespace Services
         {
             try
             {
-                //var resLanguage =  _context.Languages.SingleOrDefault(l => l.LangaugeId == languageDto.LangaugeId);
-                
                 var result = await _context.Languages.FindAsync(languageDto.LangaugeId);
 
                 result.LanguageName = languageDto.LanguageName;
@@ -158,7 +154,7 @@ namespace Services
             }
             catch (Exception)
             {
-                throw new Exception("An error occurred while updating the language record.");
+                throw ;
             }
         }
 
