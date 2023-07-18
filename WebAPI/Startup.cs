@@ -46,11 +46,11 @@ namespace WebAPI
 
             // Other service configurations
 
-    services.AddLogging(configure =>
-    {
-        configure.AddConsole(); // Add Console logger
-        // Add other log providers if needed
-    });
+            services.AddLogging(configure =>
+            {
+                configure.AddConsole(); // Add Console logger
+                // Add other log providers if needed
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

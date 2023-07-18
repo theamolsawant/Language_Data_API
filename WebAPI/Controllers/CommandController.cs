@@ -6,7 +6,7 @@ using Services.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using WebAPI.AutoMapper;
 
 namespace WebAPI.Controllers
 {
@@ -204,7 +204,7 @@ namespace WebAPI.Controllers
         //-----------------------------------------------------------------------------------------
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult< CommandDTO>> UpdateCommand([FromBody]  CommandDTO command, int id)
+        public async Task<ActionResult< CommandDTO>> UpdateCommandPut([FromBody]  CommandDTO command, int id)
         {
             _logger.LogInformation("Processing request to update existing command by command id.");
             try
@@ -217,7 +217,7 @@ namespace WebAPI.Controllers
                 if (commandToUpdate == null)
                     return NotFound($"Command with Id = {id} not found");
                 
-                return await _commandService.UpdateCommand(command);
+                return await _commandService.UpdateCommandPut(command);
             }
             catch (Exception ex)
             {
@@ -226,8 +226,52 @@ namespace WebAPI.Controllers
                     $"Error in updating command: {ex.Message}" );
             }
         }
+        
+        //-----------------------------------------------------------------------------------------
+        /// <summary>
+        /// Update an existing command in the database.
+        /// </summary>
+        /// <param name="command">The updated command information.</param>
+        /// <param name="id">The ID of the command to update.</param>
+        /// <returns>Action result representing the response containing the updated command.</returns>
+        //-----------------------------------------------------------------------------------------
 
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult< CommandDTO>> UpdateCommandPatch([FromBody]  CommandDTO command, int id)
+        {
+            _logger.LogInformation("Processing request to update existing command by command id.");
+            try
+            {
+                if (id != command.CommandId)
+                    return BadRequest("Command ID mismatch");
 
+                var commandToUpdate = await _commandService.GetCommandById(id);
+
+                if (commandToUpdate == null)
+                    return NotFound($"Command with Id = {id} not found");
+                
+                return await _commandService.UpdateCommandPatch(command);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while updating existing command.{ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Error in updating command: {ex.Message}" );
+            }
+        }
+        
+       
+
+        //-----------------------------------------------------------------------------------------
+        /// <summary>
+        /// Partially update an existing command in the database.
+        /// </summary>
+        /// <param name="id">The ID of the command to update.</param>
+        /// <param name="patchDocument">The JSON patch document containing the updates.</param>
+        /// <returns>Action result representing the response containing the updated command.</returns>
+        //-----------------------------------------------------------------------------------------
+
+  
         //-----------------------------------------------------------------------------------------
         /// <summary>
         /// Delete an existing command from the database.

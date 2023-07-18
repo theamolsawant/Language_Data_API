@@ -1,5 +1,4 @@
-﻿using DataAccessLayer;
-using Services.Model;
+﻿using Services.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -17,11 +16,18 @@ namespace Services
 
 
         /// <summary>
-        /// Updates an existing command.
+        /// Updates an existing command. 
         /// </summary>
         /// <param name="command">The updated command information.</param>
         /// <returns>The updated command details.</returns>
-        Task<CommandDTO> UpdateCommand(CommandDTO command);
+        Task<CommandDTO> UpdateCommandPut(CommandDTO command);
+
+          /// <summary>
+        /// Updates an existing command with Patch.
+        /// </summary>
+        /// <param name="command">The updated command information.</param>
+        /// <returns>The updated command details.</returns>
+        Task<CommandDTO> UpdateCommandPatch(CommandDTO command);
        
         
         /// <summary>

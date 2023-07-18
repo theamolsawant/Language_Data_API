@@ -116,7 +116,7 @@ namespace Services
         /// <returns>Task representing the asynchronous operation with the updated command.</returns>
         //-----------------------------------------------------------------------------------------
 
-        public async Task<CommandDTO> UpdateCommand(CommandDTO command)
+        public async Task<CommandDTO> UpdateCommandPut(CommandDTO command)
         {
             try
             {
@@ -129,8 +129,51 @@ namespace Services
 
                 if (result != null)
                 {
+                        result.CommandText = command.CommandText;
+                        result.CommandDescription = command.CommandDescription;
+                        result.CommandDescription = command.CommandDescription;
+                        result.CommandId = command.CommandId;
+                        result.LanguageId = command.LanguageId;
+
+                    var res = await _context.SaveChangesAsync();
+                    return _mapper.Map<CommandDTO>(result);
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                throw ;
+            }
+        }
+
+        //-----------------------------------------------------------------------------------------
+        /// <summary>
+        /// Update an existing command in the database with patch.
+        /// </summary>
+        /// <param name="command">The updated command information.</param>
+        /// <returns>Task representing the asynchronous operation with the updated command.</returns>
+        //-----------------------------------------------------------------------------------------
+
+        public async Task<CommandDTO> UpdateCommandPatch(CommandDTO command)
+        {
+            try
+            {
+                bool languageExists = _context.Languages.Any(l => l.LangaugeId == command.LanguageId);
+                if (!languageExists)
+                    throw new InvalidOperationException("The specified language ID does not exists.");
+
+                var result = await _context.Commands.FindAsync(command.CommandId);
+
+
+                if (result != null)
+                {
+                     if (!string.IsNullOrEmpty(command.CommandText))
                     result.CommandText = command.CommandText;
+
+                    if (!string.IsNullOrEmpty(command.CommandDescription))
                     result.CommandDescription = command.CommandDescription;
+
                     result.CommandId = command.CommandId;
                     result.LanguageId = command.LanguageId;
 
@@ -142,7 +185,7 @@ namespace Services
             }
             catch (Exception)
             {
-                throw ;
+                throw;
             }
         }
 
@@ -195,7 +238,6 @@ namespace Services
                 throw new Exception("Error retrieving commands by language ID");
             }
         }
-
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
